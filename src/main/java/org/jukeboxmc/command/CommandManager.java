@@ -43,10 +43,32 @@ public class CommandManager {
         }
     }
 
+    private String[] parseQuoteAware(String input) {
+        List<String> args = new ArrayList<>();
+        boolean insideQuote = false;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '\\' && i < input.length() - 1 && input.charAt(i + 1) == '\"') {
+                sb.append("\"");
+                i++;
+            } else if (c == '\"') {
+                insideQuote = !insideQuote;
+            } else if (c == ' ' && !insideQuote) {
+                args.add(sb.toString());
+                sb = new StringBuilder();
+            } else {
+                sb.append(c);
+            }
+        }
+        args.add(sb.toString());
+        return args.toArray(new String[args.size()]);
+    }
+    
     public void handleCommandInput( CommandSender commandSender, String input ) {
         try {
-            final String[] commandParts = input.substring( 1 ).split( " " );
-            final String commandIdentifier = commandParts[0];
+            final String[] commandParts = parseQuoteAware(input);
+            final String commandIdentifier = commandParts[0].replaceFirst("/", "");
 
             int consumed = 0;
             Command targetCommand = null;
